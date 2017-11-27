@@ -45,7 +45,7 @@ int set_interface_attribs (int fd, int speed, int parity) {
         tty.c_cflag &= ~(PARENB | PARODD);      // shut off parity
         tty.c_cflag |= parity;
         tty.c_cflag &= ~CSTOPB;
-        tty.c_cflag &= ~CRTSCTS;
+        //tty.c_cflag &= ~CRTSCTS;
 
         if (tcsetattr(fd, TCSANOW, &tty) != 0)
         {
@@ -70,25 +70,25 @@ void set_blocking (int fd, int should_block) {
 }
 
 void* send(void* arg) {
-	char *tranportname = "/dev/ttyUSB1";
+	char *tranportname = "/dev/ttyUSB0";
 	int tran_fd = open (tranportname, O_RDWR | O_NOCTTY | O_SYNC);
 	set_blocking (tran_fd, 0);                // set no blocking
-	for (unsigned i = 0; i < 100000; i++) {
+	for (unsigned i = 999; i < 100000; i++) {
 		// try to send data
 		unsigned total_written = 0;
 		while(sizeof(unsigned) != total_written) {
-			usleep(10000); // some rate limiting necessary
+			usleep(100000); // some rate limiting necessary
 			unsigned current = write(tran_fd, ((void*)&i)+total_written, sizeof(unsigned)-total_written);
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);
 			} else {
 				total_written+= current;
-				//printf("other%u\n", total_written);
+				printf("other%u\n", total_written);
 			}
 		}
 		write (tran_fd, &i, sizeof(unsigned));           // send 8 character greeting
-		//printf("Sent: %u\n", i);
+		printf("Sent: %u\n", i);
 	}
 	printf("Send done\n");
 	return NULL;
@@ -113,7 +113,7 @@ void* recv(void* arg) {
 				//printf("thing%u\n", total_read);
 			}
 		}
-		//printf("Received: %08x\n", local_data);
+		printf("Received: %08x\n", local_data);
 		// data received
 		pthread_mutex_lock(&mutex);
 		// update to most recent data
@@ -123,7 +123,7 @@ void* recv(void* arg) {
 		pthread_mutex_unlock(&mutex);
 	}
 	printf("Recv done\n");
-	exit(1);
+	//exit(1);
 	return NULL;
 }
 
