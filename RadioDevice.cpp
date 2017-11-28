@@ -16,19 +16,19 @@ RadioDevice::RadioDevice(char* address) {
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&cond, NULL);
 
-	std::thread sendthread (send);
-	std::thread recvthread (this->recv);
+	sendthread = std::thread(&RadioDevice::send,this);
+	recvthread = std::thread(&RadioDevice::recv,this);
 
-	// pthread_create(&threads[0], NULL, &RadioDevice::send, NULL);
+	// pthread_create(&threads[0], NULL, send, NULL);
 
-	//pthread_create(&threads[1], NULL, &RadioDevice::recv, NULL);
+	// pthread_create(&threads[1], NULL, recv, NULL);
 	// user
 
 }
+
 RadioDevice::~RadioDevice() {
-	pthread_join(threads[0], NULL);
-	pthread_join(threads[1], NULL);
-	pthread_join(threads[2], NULL);
+	sendthread.join();
+	recvthread.join();
 	printf("Done\n");
 }
 
@@ -85,7 +85,7 @@ void RadioDevice::set_blocking (int fd, int should_block) {
                 return;
 }
 
-void* RadioDevice::send(void* arg) {
+void* RadioDevice::send() {
 	set_blocking (m_fd, 0);                // set no blocking
 	for (unsigned i = 999; i < 100000; i++) {
 		// try to send data
@@ -109,12 +109,12 @@ void* RadioDevice::send(void* arg) {
 	return NULL;
 }
 
-void* RadioDevice::recv(void* arg) {
+void* RadioDevice::recv() {
 	set_interface_attribs (m_fd, B57600, 0);  // set speed to 57600 bps, 8n1 (no parity)
 	set_blocking (m_fd, 0);   
 	unsigned local_data = 0;
 	const void* buf[sizeof(unsigned)];
-	std::memset(buf,sizeof(unsigned),0);
+	memset(&buf,0, sizeof(buf) );
 	while(local_data < 99900) {
 		// try to receive data
 		unsigned total_read = 0;

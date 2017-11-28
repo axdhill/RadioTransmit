@@ -1,3 +1,3 @@
-RadioTransmit:	test.cpp	RadioTransmit.cpp
-	g++ -o test test.cpp RadioTransmit.cpp -I.
+RadioTransmit:	test.cpp	RadioDevice.cpp
+	g++ -o test test.cpp RadioDevice.cpp -pthread -I.
 

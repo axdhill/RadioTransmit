@@ -19,8 +19,8 @@ class RadioDevice {
 private:
 	int set_interface_attribs (int fd, int speed, int parity);
 	void set_blocking (int fd, int should_block);
-	void* send(void* arg);
-	void* recv(void* arg);
+	void* send();
+	void* recv();
 	unsigned data;
 	char* m_address;
 	int m_fd;
@@ -28,6 +28,8 @@ private:
 	pthread_cond_t cond;
 	int ready;
 	pthread_t threads[3];
+	std::thread sendthread;
+	std::thread recvthread; 
 public:
 	RadioDevice(char* address);
 	~RadioDevice();
