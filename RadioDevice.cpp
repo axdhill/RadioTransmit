@@ -94,7 +94,7 @@ void* RadioDevice::send() {
 		memset(&buf, 0, sizeof(buf) );
 		sprintf(buf,"%0.8f %0.8f %0.8f",0.235,0.11,0.55);
 
-		while(sizeof(unsigned) != total_written) {
+		while(sizeof(buf) != total_written) {
 			usleep(100000); // some rate limiting necessary
 			unsigned current = write(m_fd, buf, sizeof(buf));
 			if (current < 0) {
