@@ -121,7 +121,7 @@ void* RadioDevice::recv() {
 	while(local_data < 99900) {
 		// try to receive data
 		unsigned total_read = 0;
-		while(sizeof(unsigned) != total_read) {
+		while(sizeof(buf) != total_read) {
 			unsigned current = read(m_fd, buf, sizeof(buf));
 			if (current < 0) {
 				printf("Fatal error\n");
