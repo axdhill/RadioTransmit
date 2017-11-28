@@ -118,7 +118,7 @@ void* RadioDevice::recv() {
 	unsigned local_data = 0;
 	char buf[64];
 	memset(&buf,0, sizeof(buf) );
-	while(local_data < 99900) {
+	while(true) {
 		// try to receive data
 		unsigned total_read = 0;
 		while(sizeof(buf) != total_read) {
@@ -135,7 +135,7 @@ void* RadioDevice::recv() {
 		// data received
 		pthread_mutex_lock(&mutex);
 		// update to most recent data
-		data = local_data;
+		data = buf;
 		ready = 1;
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&mutex);
@@ -147,8 +147,8 @@ void* RadioDevice::recv() {
 
 
 
-unsigned RadioDevice::latest() {
-	unsigned localdata;
+char* RadioDevice::latest() {
+	char* localdata;
 	pthread_mutex_lock(&mutex);
 		// update to most recent data
 	localdata = data;

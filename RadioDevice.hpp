@@ -21,7 +21,7 @@ private:
 	void set_blocking (int fd, int should_block);
 	void* send();
 	void* recv();
-	unsigned data;
+	char* data;
 	char* m_address;
 	int m_fd;
 	pthread_mutex_t mutex;
@@ -34,7 +34,7 @@ public:
 	RadioDevice(char* address);
 	~RadioDevice();
 
-	unsigned latest();
+	char* latest();
 
 };
 
