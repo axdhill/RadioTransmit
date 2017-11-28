@@ -106,7 +106,7 @@ void* RadioDevice::send() {
 			}
 		}
 		write (m_fd, &i, sizeof(unsigned));           // send 8 character greeting
-		printf("Sent: %u\n", i);
+		printf("Sent: %s %u\n", buf,i);
 	}
 	printf("Send done\n");
 	return NULL;
