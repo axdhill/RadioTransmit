@@ -90,10 +90,13 @@ void* RadioDevice::send() {
 	for (unsigned i = 999; i < 100000; i++) {
 		// try to send data
 		unsigned total_written = 0;
-		const void* text = 0;
+		char buf[64];
+		memset(&buf, 0, sizeof(buf) );
+		sprintf(buf,"%0.8f %0.8f %0.8f",0.235,0.11,0.55);
+
 		while(sizeof(unsigned) != total_written) {
 			usleep(100000); // some rate limiting necessary
-			unsigned current = write(m_fd, text, sizeof(unsigned)-total_written);
+			unsigned current = write(m_fd, buf, sizeof(buf));
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);
@@ -113,13 +116,13 @@ void* RadioDevice::recv() {
 	set_interface_attribs (m_fd, B57600, 0);  // set speed to 57600 bps, 8n1 (no parity)
 	set_blocking (m_fd, 0);   
 	unsigned local_data = 0;
-	const void* buf[sizeof(unsigned)];
+	char buf[64];
 	memset(&buf,0, sizeof(buf) );
 	while(local_data < 99900) {
 		// try to receive data
 		unsigned total_read = 0;
 		while(sizeof(unsigned) != total_read) {
-			unsigned current = read(m_fd, buf, sizeof(unsigned)-total_read);
+			unsigned current = read(m_fd, buf, sizeof(buf));
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);

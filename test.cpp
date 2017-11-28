@@ -3,7 +3,7 @@
 
 
 int main() {
-	RadioDevice radio("/dev/tty");
+	RadioDevice radio("/dev/ttyUSB0");
 
 	
 }
