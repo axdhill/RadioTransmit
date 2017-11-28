@@ -131,7 +131,7 @@ void* RadioDevice::recv() {
 				//printf("thing%u\n", total_read);
 			}
 		}
-		printf("Received: %08x\n", local_data);
+		printf("Received: %s\n", buf);
 		// data received
 		pthread_mutex_lock(&mutex);
 		// update to most recent data
