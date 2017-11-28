@@ -96,7 +96,7 @@ void* RadioDevice::send() {
 
 		while(sizeof(buf) != total_written) {
 			usleep(100000); // some rate limiting necessary
-			unsigned current = write(m_fd, buf, sizeof(buf));
+			unsigned current = write(m_fd, buf, sizeof(buf)-total_written);
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);
@@ -122,7 +122,7 @@ void* RadioDevice::recv() {
 		// try to receive data
 		unsigned total_read = 0;
 		while(sizeof(buf) != total_read) {
-			unsigned current = read(m_fd, buf, sizeof(buf));
+			unsigned current = read(m_fd, buf, sizeof(buf)-total_read);
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);
