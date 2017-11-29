@@ -88,6 +88,7 @@ void* RadioDevice::send() {
 		while(sizeof(unsigned) != total_written) {
 			usleep(100000); // some rate limiting necessary
 			unsigned current = write(m_fd, ((void*)&i)+total_written, sizeof(unsigned)-total_written);
+			printf("Sent: %u\n", i);
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);
@@ -97,7 +98,7 @@ void* RadioDevice::send() {
 			}
 		}
 		write (m_fd, &i, sizeof(unsigned));           // send 8 character greeting
-		printf("Sent: %u\n", i);
+		
 	}
 	printf("Send done\n");
 	return NULL;
