@@ -86,7 +86,7 @@ void* RadioDevice::send() {
 		// try to send data
 		unsigned total_written = 0;
 		while(sizeof(unsigned) != total_written) {
-			usleep(10000); // some rate limiting necessary
+			usleep(100000); // some rate limiting necessary
 			unsigned current = write(m_fd, ((void*)&i)+total_written, sizeof(unsigned)-total_written);
 			if (current < 0) {
 				printf("Fatal error\n");
