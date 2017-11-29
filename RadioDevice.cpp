@@ -1,11 +1,6 @@
 
 #include "RadioDevice.hpp"
 
-
-
-
-
-
 #include <unistd.h>
 
 RadioDevice::RadioDevice(char* address) {
@@ -92,7 +87,7 @@ void* RadioDevice::send() {
 		unsigned total_written = 0;
 		char buf[64];
 		memset(&buf, 0, sizeof(buf) );
-		sprintf(buf,"%0.8f %0.8f %0.8f",0.235,0.11,0.55);
+		sprintf(buf,"abcddsdf");
 
 		while(sizeof(buf) != total_written) {
 			usleep(100000); // some rate limiting necessary
