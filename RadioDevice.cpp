@@ -86,9 +86,9 @@ void* RadioDevice::send() {
 		// try to send data
 		unsigned total_written = 0;
 		while(sizeof(unsigned) != total_written) {
-			usleep(100000); // some rate limiting necessary
-			unsigned current = write(m_fd, ((void*)&i)+total_written, sizeof(unsigned)-total_written);
-			printf("Sent: %u\n", i);
+			usleep(10000); // some rate limiting necessary
+			unsigned current = write(m_fd, ((void*)&i), sizeof(unsigned)-total_written);
+			//printf("Sent: %08x\n", i);
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);
@@ -97,7 +97,7 @@ void* RadioDevice::send() {
 				//printf("other%u\n", total_written);
 			}
 		}
-		write (m_fd, &i, sizeof(unsigned));           // send 8 character greeting
+		//write (m_fd, &i, sizeof(unsigned));           // send 8 character greeting
 		
 	}
 	printf("Send done\n");
@@ -108,7 +108,7 @@ void* RadioDevice::recv() {
 	set_interface_attribs (m_fd, B57600, 0);  // set speed to 57600 bps, 8n1 (no parity)
 	set_blocking (m_fd, 0);   
 	unsigned local_data = 0;
-	while(local_data < 99900) {
+	while(local_data < 999000) {
 		// try to receive data
 		unsigned total_read = 0;
 		while(sizeof(unsigned) != total_read) {
@@ -121,7 +121,7 @@ void* RadioDevice::recv() {
 				//printf("thing%u\n", total_read);
 			}
 		}
-		printf("Received: %08x\n", local_data);
+		//printf("Received: %08x\n", local_data);
 		// data received
 		pthread_mutex_lock(&mutex);
 		// update to most recent data
@@ -137,12 +137,17 @@ void* RadioDevice::recv() {
 
 
 
-char RadioDevice::latest() {
-	char localdata;
+unsigned RadioDevice::latest() {
+	//printf("latest");
+	unsigned localdata;
+	// char localdata[256];
+	//memset(&localdata, 0, sizeof(unsigned));
 	pthread_mutex_lock(&mutex);
 		// update to most recent data
-	localdata = static_cast<char>(data);
+	// sprintf(localdata,"%08x",data);
+	localdata = data;
 	pthread_cond_signal(&cond);
 	pthread_mutex_unlock(&mutex);
+	//printf("returning");
 	return localdata;
 }

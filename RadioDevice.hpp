@@ -21,20 +21,25 @@ private:
 	void set_blocking (int fd, int should_block);
 	void* send();
 	void* recv();
+
 	unsigned data;
 	char* m_address;
 	int m_fd;
+
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
 	int ready;
+
 	pthread_t threads[3];
+
 	std::thread sendthread;
 	std::thread recvthread; 
+
 public:
 	RadioDevice(char* address);
 	~RadioDevice();
 
-	char latest();
+	unsigned latest();
 
 };
 
