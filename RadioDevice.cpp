@@ -82,16 +82,12 @@ void RadioDevice::set_blocking (int fd, int should_block) {
 
 void* RadioDevice::send() {
 	set_blocking (m_fd, 0);                // set no blocking
-	for (unsigned i = 999; i < 100000; i++) {
+	for (unsigned i = 0; i < 100000; i++) {
 		// try to send data
 		unsigned total_written = 0;
-		char buf[64];
-		memset(&buf, 0, sizeof(buf) );
-		sprintf(buf,"abcddsdf");
-
-		while(sizeof(buf) != total_written) {
-			usleep(100000); // some rate limiting necessary
-			unsigned current = write(m_fd, buf, sizeof(buf)-total_written);
+		while(sizeof(unsigned) != total_written) {
+			usleep(10000); // some rate limiting necessary
+			unsigned current = write(m_fd, ((void*)&i)+total_written, sizeof(unsigned)-total_written);
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);
@@ -101,7 +97,7 @@ void* RadioDevice::send() {
 			}
 		}
 		write (m_fd, &i, sizeof(unsigned));           // send 8 character greeting
-		printf("Sent: %s %u\n", buf,i);
+		//printf("Sent: %u\n", i);
 	}
 	printf("Send done\n");
 	return NULL;
@@ -111,13 +107,11 @@ void* RadioDevice::recv() {
 	set_interface_attribs (m_fd, B57600, 0);  // set speed to 57600 bps, 8n1 (no parity)
 	set_blocking (m_fd, 0);   
 	unsigned local_data = 0;
-	char buf[64];
-	memset(&buf,0, sizeof(buf) );
-	while(true) {
+	while(local_data < 99900) {
 		// try to receive data
 		unsigned total_read = 0;
-		while(sizeof(buf) != total_read) {
-			unsigned current = read(m_fd, buf, sizeof(buf)-total_read);
+		while(sizeof(unsigned) != total_read) {
+			unsigned current = read(m_fd, ((void*)&local_data)+total_read, sizeof(unsigned)-total_read);
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);
@@ -126,27 +120,27 @@ void* RadioDevice::recv() {
 				//printf("thing%u\n", total_read);
 			}
 		}
-		printf("Received: %s\n", buf);
+		//printf("Received: %08x\n", local_data);
 		// data received
 		pthread_mutex_lock(&mutex);
 		// update to most recent data
-		data = buf;
+		data = local_data;
 		ready = 1;
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&mutex);
 	}
 	printf("Recv done\n");
-	//exit(1);
+	exit(1);
 	return NULL;
 }
 
 
 
-char* RadioDevice::latest() {
-	char* localdata;
+char RadioDevice::latest() {
+	char localdata;
 	pthread_mutex_lock(&mutex);
 		// update to most recent data
-	localdata = data;
+	localdata = static_cast<char>(data);
 	pthread_cond_signal(&cond);
 	pthread_mutex_unlock(&mutex);
 	return localdata;
