@@ -8,9 +8,9 @@ RadioDevice::RadioDevice(char* address) {
 	m_fd = open (m_address, O_RDWR | O_NOCTTY | O_SYNC);
 	int ready = 0;
 
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
-
+	// pthread_mutex_init(&mutex, NULL);
+	// pthread_cond_init(&cond, NULL);
+	got_data = false;
 	sendthread = std::thread(&RadioDevice::send,this);
 	recvthread = std::thread(&RadioDevice::recv,this);
 
@@ -82,12 +82,13 @@ void RadioDevice::set_blocking (int fd, int should_block) {
 
 void* RadioDevice::send() {
 	set_blocking (m_fd, 0);                // set no blocking
+
 	for (unsigned i = 0; i < 100000; i++) {
 		// try to send data
 		unsigned total_written = 0;
 		while(sizeof(unsigned) != total_written) {
-			usleep(10000); // some rate limiting necessary
-			unsigned current = write(m_fd, ((void*)&i), sizeof(unsigned)-total_written);
+			usleep(15000); // some rate limiting necessary
+			unsigned current = write(m_fd, ((void*)&i)+total_written, sizeof(unsigned)-total_written);
 			//printf("Sent: %08x\n", i);
 			if (current < 0) {
 				printf("Fatal error\n");
@@ -105,7 +106,7 @@ void* RadioDevice::send() {
 }
 
 void* RadioDevice::recv() {
-	set_interface_attribs (m_fd, B57600, 0);  // set speed to 57600 bps, 8n1 (no parity)
+	set_interface_attribs (m_fd, B230400, 0);  // set speed to 234000 bps, 8n1 (no parity)
 	set_blocking (m_fd, 0);   
 	unsigned local_data = 0;
 	while(local_data < 999000) {
@@ -121,14 +122,13 @@ void* RadioDevice::recv() {
 				//printf("thing%u\n", total_read);
 			}
 		}
-		//printf("Received: %08x\n", local_data);
+		// printf("Received: %08x\n", local_data);
 		// data received
-		pthread_mutex_lock(&mutex);
+		mutex.lock();
 		// update to most recent data
 		data = local_data;
 		ready = 1;
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
+		mutex.unlock();
 	}
 	printf("Recv done\n");
 	exit(1);
@@ -142,12 +142,11 @@ unsigned RadioDevice::latest() {
 	unsigned localdata;
 	// char localdata[256];
 	//memset(&localdata, 0, sizeof(unsigned));
-	pthread_mutex_lock(&mutex);
+	mutex.lock();
 		// update to most recent data
 	// sprintf(localdata,"%08x",data);
 	localdata = data;
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&mutex);
+	mutex.unlock();
 	//printf("returning");
 	return localdata;
 }

@@ -14,6 +14,8 @@
 #include <time.h>
 #include <stdlib.h>
 #include <thread>
+#include <mutex>
+
 
 class RadioDevice {
 private:
@@ -26,8 +28,9 @@ private:
 	char* m_address;
 	int m_fd;
 
-	pthread_mutex_t mutex;
-	pthread_cond_t cond;
+	std::mutex mutex;
+	bool got_data;
+	// pthread_cond_t cond;
 	int ready;
 
 	pthread_t threads[3];
