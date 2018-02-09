@@ -16,6 +16,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#include <utility>
 
 
 class RadioDevice {
@@ -29,12 +30,7 @@ private:
 	char* m_address;
 	int m_fd;
 
-	std::mutex mutex;
-	bool got_data;
-	// pthread_cond_t cond;
-	int ready;
-
-	pthread_t threads[3];
+	pthread_t threads[2];
 
 	std::thread sendthread;
 	std::thread recvthread; 
