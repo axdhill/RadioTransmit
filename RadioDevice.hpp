@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <thread>
 #include <mutex>
+#include <atomic>
 
 
 class RadioDevice {
@@ -24,7 +25,7 @@ private:
 	void* send();
 	void* recv();
 
-	unsigned data;
+	std::atomic<unsigned> data;
 	char* m_address;
 	int m_fd;
 
@@ -40,6 +41,7 @@ private:
 
 public:
 	RadioDevice(char* address);
+	RadioDevice(char* address, int type);
 	~RadioDevice();
 
 	unsigned latest();

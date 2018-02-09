@@ -3,7 +3,13 @@
 
 #include <unistd.h>
 
+//std::atomic<unsigned> RadioDevice::data;
+
 RadioDevice::RadioDevice(char* address) {
+	RadioDevice(address, 2);
+}
+
+RadioDevice::RadioDevice(char* address, int type) {
 	m_address = address;
 	m_fd = open (m_address, O_RDWR | O_NOCTTY | O_SYNC);
 	int ready = 0;
@@ -11,9 +17,13 @@ RadioDevice::RadioDevice(char* address) {
 	// pthread_mutex_init(&mutex, NULL);
 	// pthread_cond_init(&cond, NULL);
 	got_data = false;
-	sendthread = std::thread(&RadioDevice::send,this);
-	recvthread = std::thread(&RadioDevice::recv,this);
-
+	if (type == 0 || type == 2) {
+		printf("LOGGING: Radio sending.\n");
+		sendthread = std::thread(&RadioDevice::send,this);
+	} else if (type == 1 || type == 2) {
+		printf("LOGGING: Radio receiving.\n");
+		recvthread = std::thread(&RadioDevice::recv,this);
+	}
 	// pthread_create(&threads[0], NULL, send, NULL);
 
 	// pthread_create(&threads[1], NULL, recv, NULL);
@@ -83,12 +93,13 @@ void RadioDevice::set_blocking (int fd, int should_block) {
 void* RadioDevice::send() {
 	set_blocking (m_fd, 0);                // set no blocking
 
-	for (unsigned i = 0; i < 100000; i++) {
+	for (unsigned i = 0; i < 100000; i+= 1) {
 		// try to send data
+		//printf("Sending: %d\n", i);
 		unsigned total_written = 0;
-		while(sizeof(unsigned) != total_written) {
+		while(sizeof(unsigned) != total_written) { // unsure why, but the equivalent blocking version of this code doesn't work as well (gets some trash values)
 			usleep(15000); // some rate limiting necessary
-			unsigned current = write(m_fd, ((void*)&i)+total_written, sizeof(unsigned)-total_written);
+			ssize_t current = write(m_fd, ((char*)&i)+total_written, sizeof(unsigned)-total_written);
 			//printf("Sent: %08x\n", i);
 			if (current < 0) {
 				printf("Fatal error\n");
@@ -110,10 +121,11 @@ void* RadioDevice::recv() {
 	set_blocking (m_fd, 0);   
 	unsigned local_data = 0;
 	while(local_data < 999000) {
+		//printf("wat2: %d\n",  data);
 		// try to receive data
 		unsigned total_read = 0;
 		while(sizeof(unsigned) != total_read) {
-			unsigned current = read(m_fd, ((void*)&local_data)+total_read, sizeof(unsigned)-total_read);
+			ssize_t current = read(m_fd, ((char*)&local_data)+total_read, sizeof(unsigned)-total_read);
 			if (current < 0) {
 				printf("Fatal error\n");
 				exit(1);
@@ -124,13 +136,14 @@ void* RadioDevice::recv() {
 		}
 		// printf("Received: %08x\n", local_data);
 		// data received
-		mutex.lock();
+		//printf("Recv: %d\n", local_data);
+		//printf("Recv Pointer: %p\n", &this->data);
 		// update to most recent data
-		data = local_data;
-		ready = 1;
+		data.store(local_data, std::memory_order_relaxed);
 		mutex.unlock();
 	}
-	printf("Recv done\n");
+	//printf("Received: %d\n", local_data);
+	//printf("Recv done\n");
 	exit(1);
 	return NULL;
 }
@@ -139,14 +152,12 @@ void* RadioDevice::recv() {
 
 unsigned RadioDevice::latest() {
 	//printf("latest");
-	unsigned localdata;
-	// char localdata[256];
-	//memset(&localdata, 0, sizeof(unsigned));
-	mutex.lock();
+	//printf("Lat: %d\n", this->data.load());
+	//printf("Lat  Pointer: %p\n", &this->data);
+	unsigned ret;
 		// update to most recent data
 	// sprintf(localdata,"%08x",data);
-	localdata = data;
-	mutex.unlock();
+	ret = this->data.load(std::memory_order_relaxed);
 	//printf("returning");
-	return localdata;
+	return ret;
 }
